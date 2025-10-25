@@ -33,6 +33,7 @@ using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using StackExchange.Redis;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -90,6 +91,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+});
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+    return ConnectionMultiplexer.Connect(configuration);
 });
 
 builder.Services.AddHangfire(config =>
@@ -241,7 +248,7 @@ public class BackgroundJobScheduler : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _recurringJobManager.AddOrUpdate<BookingLifecycleJobs>("expire-bookings", job => job.ExpirePendingAsync(Guid.Empty, CancellationToken.None), Cron.Minutely);
+        _recurringJobManager.AddOrUpdate<BookingLifecycleJobs>("expire-bookings", job => job.ExpirePendingAsync(CancellationToken.None), Cron.Minutely);
         return Task.CompletedTask;
     }
 

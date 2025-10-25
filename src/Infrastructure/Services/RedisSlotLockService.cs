@@ -1,34 +1,48 @@
-using System.Text;
+using System.Collections.Concurrent;
 using HouseHelp.Domain.Services;
-using Microsoft.Extensions.Caching.Distributed;
+using StackExchange.Redis;
 
 namespace HouseHelp.Infrastructure.Services;
 
 public class RedisSlotLockService : ISlotLockService
 {
-    private readonly IDistributedCache _cache;
+    private static readonly LuaScript ReleaseScript = LuaScript.Prepare(
+        "if redis.call('get', @key) == @value then return redis.call('del', @key) else return 0 end");
 
-    public RedisSlotLockService(IDistributedCache cache)
+    private readonly IDatabase _database;
+    private readonly ConcurrentDictionary<string, string> _lockTokens = new();
+
+    public RedisSlotLockService(IConnectionMultiplexer multiplexer)
     {
-        _cache = cache;
+        _database = multiplexer.GetDatabase();
     }
 
     public async Task<bool> AcquireAsync(string key, TimeSpan ttl, CancellationToken cancellationToken = default)
     {
-        var options = new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = ttl };
-        var value = Encoding.UTF8.GetBytes(Guid.NewGuid().ToString());
-        var existing = await _cache.GetAsync(key, cancellationToken);
-        if (existing is not null)
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var token = Guid.NewGuid().ToString();
+        var acquired = await _database.StringSetAsync(key, token, ttl, When.NotExists);
+        if (!acquired)
         {
             return false;
         }
 
-        await _cache.SetAsync(key, value, options, cancellationToken);
+        _lockTokens[key] = token;
         return true;
     }
 
-    public Task ReleaseAsync(string key, CancellationToken cancellationToken = default)
+    public async Task ReleaseAsync(string key, CancellationToken cancellationToken = default)
     {
-        return _cache.RemoveAsync(key, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (_lockTokens.TryRemove(key, out var token))
+        {
+            await _database.ScriptEvaluateAsync(ReleaseScript, new { key, value = token });
+        }
+        else
+        {
+            await _database.KeyDeleteAsync(key);
+        }
     }
 }

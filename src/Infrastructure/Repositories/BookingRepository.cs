@@ -38,4 +38,11 @@ public class BookingRepository : IBookingRepository
     {
         return await _dbContext.Bookings.Where(b => b.HelperId == helperId && b.State == state).OrderBy(b => b.StartAt).ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<Booking>> GetPendingExpiredAsync(DateTimeOffset cutoff, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Bookings
+            .Where(b => b.State == BookingState.Requested && b.CreatedAt <= cutoff)
+            .ToListAsync(cancellationToken);
+    }
 }
