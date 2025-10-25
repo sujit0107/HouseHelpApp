@@ -1,0 +1,39 @@
+### Request OTP
+POST http://localhost:5000/auth/otp/request
+Content-Type: application/json
+
+{
+  "phone": "9999999999"
+}
+
+### Verify OTP
+POST http://localhost:5000/auth/otp/verify
+Content-Type: application/json
+
+{
+  "requestId": "{{requestId}}",
+  "code": "123456",
+  "phone": "9999999999",
+  "role": "Resident"
+}
+
+### Get Helpers
+GET http://localhost:5000/helpers/search
+Authorization: Bearer {{accessToken}}
+
+### Create Booking
+POST http://localhost:5000/bookings
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "helperId": "{{helperId}}",
+  "flatId": "{{flatId}}",
+  "serviceType": "Cleaning",
+  "startAt": "2024-04-01T09:00:00Z",
+  "endAt": "2024-04-01T10:00:00Z",
+  "paymentMethod": "razorpay"
+}
+
+### Health
+GET http://localhost:5000/health
