@@ -10,4 +10,5 @@ public interface IBookingRepository
     Task UpdateAsync(Booking booking, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Booking>> GetByResidentAsync(Guid residentId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Booking>> GetByHelperAndStateAsync(Guid helperId, BookingState state, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Booking>> GetPendingExpiredAsync(DateTimeOffset cutoff, CancellationToken cancellationToken = default);
 }
