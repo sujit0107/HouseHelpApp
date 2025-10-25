@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HouseHelp Resident Dashboard</title>
+    <link rel="stylesheet" href="/ui/resident-dashboard.css" />
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1>Resident Booking Dashboard</h1>
+            <p class="subtitle">Authenticate with your phone number, browse verified helpers, and place a booking directly against the API.</p>
+        </header>
+
+        <section id="auth-section" class="card">
+            <h2>Step 1: Sign in with OTP</h2>
+            <form id="otp-request-form" class="form-inline">
+                <label for="phone">Phone</label>
+                <input id="phone" name="phone" type="tel" value="+910000000001" required />
+                <button type="submit">Request OTP</button>
+            </form>
+            <form id="otp-verify-form" class="form-inline" hidden>
+                <label for="otp-code">OTP Code</label>
+                <input id="otp-code" name="otpCode" type="text" maxlength="6" value="123456" required />
+                <button type="submit">Verify</button>
+            </form>
+            <div id="auth-status" class="status"></div>
+        </section>
+
+        <section id="flat-section" class="card" hidden>
+            <h2>Step 2: Choose your flat</h2>
+            <label for="flat-select">Registered flat</label>
+            <select id="flat-select"></select>
+            <div class="hint">Flats are assigned during seeding for demo accounts. Contact support to onboard additional flats.</div>
+        </section>
+
+        <section id="search-section" class="card" hidden>
+            <h2>Step 3: Search helpers</h2>
+            <form id="search-form" class="form-grid">
+                <div>
+                    <label for="skill">Skill</label>
+                    <input id="skill" name="skill" type="text" value="Cleaning" />
+                </div>
+                <div>
+                    <label for="start-time">Start</label>
+                    <input id="start-time" name="start" type="datetime-local" required />
+                </div>
+                <div>
+                    <label for="end-time">End</label>
+                    <input id="end-time" name="end" type="datetime-local" required />
+                </div>
+                <div>
+                    <label for="price-max">Max price/hour</label>
+                    <input id="price-max" name="priceMax" type="number" step="50" value="600" />
+                </div>
+                <button type="submit">Search</button>
+            </form>
+            <div id="search-status" class="status"></div>
+            <table id="helpers-table" class="helpers" hidden>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Skills</th>
+                        <th>Rate (₹/hr)</th>
+                        <th>Rating</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <section id="booking-section" class="card" hidden>
+            <h2>Step 4: Booking result</h2>
+            <div id="booking-status" class="status"></div>
+            <pre id="booking-json" class="booking-json"></pre>
+        </section>
+    </main>
+
+    <script type="module" src="/ui/resident-dashboard.js"></script>
+</body>
+</html>
